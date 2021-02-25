@@ -155,16 +155,6 @@ except: pass
 
 try:
     lora.start()
-except KeyboardInterrupt:
-    sys.stdout.flush()
-    sys.stderr.write("KeyboardInterrupt\n")
-finally:
-    sys.stdout.flush()
-    lora.set_mode(MODE.SLEEP)
-    sleep(.5)
-    BOARD.teardown()
-
-try:
     while True:
         returnedList = lora.on_rx_done()
         print("payload")
@@ -181,6 +171,12 @@ try:
         
         # 20 device every 2s
         time.sleep(2)
-
 except KeyboardInterrupt:
-    pass
+    sys.stdout.flush()
+    sys.stderr.write("KeyboardInterrupt\n")
+finally:
+    sys.stdout.flush()
+    lora.set_mode(MODE.SLEEP)
+    sleep(.5)
+    BOARD.teardown()
+
