@@ -21,7 +21,6 @@
 # <http://www.gnu.org/licenses/>.
 
 import paho.mqtt.client as mqtt
-from gw_rx import LoRaRcvCont
 import random
 import json
 import time
@@ -37,6 +36,92 @@ from SX127x.LoRaArgumentParser import LoRaArgumentParser
 BOARD.setup()
 
 parser = LoRaArgumentParser("Continous LoRa receiver.")
+
+# python2
+try:
+    import sys
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+except:
+    pass
+
+class LoRaRcvCont(LoRa):
+    def __init__(self, verbose=False):
+        super(LoRaRcvCont, self).__init__(verbose)
+        self.set_mode(MODE.SLEEP)
+        self.set_dio_mapping([0,0,0,0,0,0])    # RX
+        self._id = "GW_01"
+
+
+    def on_rx_done(self):
+        print("\nRxDone")
+        print('----------------------------------')
+
+        payload = self.read_payload(nocheck=True)
+        data = ''.join([chr(c) for c in payload])
+
+        try:
+            _length, _data = packer.Unpack_Str(data)
+            print("Time: {}".format( str(time.ctime() )))
+            print("Length: {}".format( _length ))
+            print("Raw RX: {}".format( payload ))
+
+            try:
+                # python3 unicode
+                print("Receive: {}".format( _data.encode('latin-1').decode('unicode_escape')))
+            except:
+                # python2
+                print("Receive: {}".format( _data ))
+        except:
+            print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+            print("Non-hexadecimal digit found...")
+            print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+            print("Receive: {}".format( data))
+
+
+
+        self.set_dio_mapping([1,0,0,0,0,0])    # TX
+        self.set_mode(MODE.STDBY)
+  
+        sleep(1)
+        self.clear_irq_flags(TxDone=1)
+        data = {"id":self._id, "data":packer.ACK}
+        _length, _ack = packer.Pack_Str( json.dumps(data) )
+
+        try:
+            # for python2
+            ack = [int(hex(ord(c)), 0) for c in _ack]
+        except:
+            # for python3 
+            ack = [int(hex(c), 0) for c in _ack]
+
+        print("ACK: {}, {}".format( self._id, ack))
+        self.write_payload(ack)    
+        self.set_mode(MODE.TX)
+        return data
+
+
+    def on_tx_done(self):
+        print("\nTxDone")
+        self.set_dio_mapping([0,0,0,0,0,0])    # RX
+        self.set_mode(MODE.STDBY)
+        sleep(1)
+        self.reset_ptr_rx()
+        self.set_mode(MODE.RXCONT)
+        self.clear_irq_flags(RxDone=1)
+
+
+    def start(self):
+        self.reset_ptr_rx()
+        self.set_mode(MODE.RXCONT)
+        while True:
+            sleep(1)
+            rssi_value = self.get_rssi_value()
+            status = self.get_modem_status()
+            sys.stdout.flush()
+            sys.stdout.write("\r%d %d %d" % (rssi_value, status['rx_ongoing'], status['modem_clear']))
+
+
 
 # publish to TagoIO
 device_token = "75942942-5468-4e7a-8890-2e9586ce6b55"
@@ -69,7 +154,6 @@ try: input("Press enter to start...")
 except: pass
 
 try:
-    lora.__init__()
     lora.start()
 except KeyboardInterrupt:
     sys.stdout.flush()
