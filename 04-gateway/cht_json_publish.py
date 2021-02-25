@@ -69,6 +69,7 @@ try: input("Press enter to start...")
 except: pass
 
 try:
+    lora.__init__()
     lora.start()
 except KeyboardInterrupt:
     sys.stdout.flush()
@@ -82,7 +83,7 @@ finally:
 try:
     while True:
         returnedList = lora.on_rx_done()
-        
+        print("payload")
         client = mqtt.Client()
         
         # for tago include this line
