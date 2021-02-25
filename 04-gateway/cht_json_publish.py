@@ -21,11 +21,22 @@
 # <http://www.gnu.org/licenses/>.
 
 import paho.mqtt.client as mqtt
-import gw_rx
+from gw_rx import LoRaRcvCont
 import random
 import json
 import time
 import sys
+from time import sleep
+import packer
+import numpy as np
+sys.path.insert(0, '../')
+from SX127x.LoRa import *
+from SX127x.board_config import BOARD
+from SX127x.LoRaArgumentParser import LoRaArgumentParser
+
+BOARD.setup()
+
+parser = LoRaArgumentParser("Continous LoRa receiver.")
 
 # publish to TagoIO
 device_token = "75942942-5468-4e7a-8890-2e9586ce6b55"
@@ -51,8 +62,13 @@ args = parser.parse_args(lora)
 lora.set_mode(MODE.STDBY)
 lora.set_pa_config(pa_select=1)
 
+print(lora)
+assert(lora.get_agc_auto_on() == 1)
+
+try: input("Press enter to start...")
+except: pass
+
 try:
-    lora.init()
     lora.start()
 except KeyboardInterrupt:
     sys.stdout.flush()
