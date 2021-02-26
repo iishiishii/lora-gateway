@@ -27,6 +27,7 @@ import time
 import sys
 from time import sleep
 import packer
+import socket
 import numpy as np
 sys.path.insert(0, '../')
 from SX127x.LoRa import *
@@ -36,6 +37,7 @@ from SX127x.LoRaArgumentParser import LoRaArgumentParser
 BOARD.setup()
 
 parser = LoRaArgumentParser("Continous LoRa receiver.")
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
 
 # python2
 try:
@@ -44,6 +46,26 @@ try:
     sys.setdefaultencoding('utf-8')
 except:
     pass
+
+
+# publish to TagoIO
+device_token = "75942942-5468-4e7a-8890-2e9586ce6b55"
+broker = "mqtt.tago.io"
+broker_port = 1883
+mqtt_keep_alive = 60
+mqtt_username = "mqtt_client"
+mqtt_password = device_token
+mqtt_topic = "tago/data/post"
+
+# publish emqx
+# broker = "broker.emqx.io"
+# broker_port = 1883
+# mqtt_keep_alive = 60
+# mqtt_topic = "topic/test"
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected OK")
+    client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
 
 class LoRaRcvCont(LoRa):
     def __init__(self, verbose=False):
@@ -118,9 +140,7 @@ class LoRaRcvCont(LoRa):
             sleep(1)
             rssi_value = self.get_rssi_value()
             status = self.get_modem_status()
-            sys.stdout.flush()
-            sys.stdout.write("\r%d %d %d" % (rssi_value, status['rx_ongoing'], status['modem_clear']))
-
+            
             returnedList = lora.on_rx_done()
             print("payload")
             client = mqtt.Client()
@@ -135,26 +155,9 @@ class LoRaRcvCont(LoRa):
             # 20 device every 2s
             time.sleep(2)
 
+            sys.stdout.flush()
+            sys.stdout.write("\r%d %d %d" % (rssi_value, status['rx_ongoing'], status['modem_clear']))
 
-
-# publish to TagoIO
-device_token = "75942942-5468-4e7a-8890-2e9586ce6b55"
-broker = "mqtt.tago.io"
-broker_port = 1883
-mqtt_keep_alive = 60
-mqtt_username = "mqtt_client"
-mqtt_password = device_token
-mqtt_topic = "tago/data/post"
-
-# publish emqx
-# broker = "broker.emqx.io"
-# broker_port = 1883
-# mqtt_keep_alive = 60
-# mqtt_topic = "topic/test"
-
-def on_connect(client, userdata, flags, rc):
-    print("Connected OK")
-    client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
 
 lora = LoRaRcvCont(verbose=False)
 args = parser.parse_args(lora)
