@@ -129,11 +129,9 @@ class LoRaRcvCont(LoRa):
             client.username_pw_set(mqtt_username, mqtt_password)
             
             client.on_connect = on_connect
-            client.connect(broker, broker_port, mqtt_keep_alive)
+            client.connect(broker, broker_port, mqtt_keep_alive, json.dumps(returnedList))
             client.loop_start()
-            
-            data_json_string = json.dumps(returnedList)
-            
+
             # 20 device every 2s
             time.sleep(2)
 
@@ -156,7 +154,7 @@ mqtt_topic = "tago/data/post"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected OK")
-    client.publish(mqtt_topic, payload=data_json_string, qos=0, retain=False)
+    client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
 
 lora = LoRaRcvCont(verbose=False)
 args = parser.parse_args(lora)
