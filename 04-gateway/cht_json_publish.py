@@ -109,6 +109,7 @@ class LoRaRcvCont(LoRa):
         self.clear_irq_flags(TxDone=1)
         data = {"id":self._id, "data":packer.ACK}
         _length, _ack = packer.Pack_Str( json.dumps(data) )
+        data_json = {'variable': 'payload', 'value': _ack}
 
         try:
             # for python2
@@ -120,7 +121,7 @@ class LoRaRcvCont(LoRa):
         print("ACK: {}, {}".format( self._id, ack))
         self.write_payload(ack)    
         self.set_mode(MODE.TX)
-        return data
+        return data_json
 
 
     def on_tx_done(self):
@@ -141,7 +142,7 @@ class LoRaRcvCont(LoRa):
             rssi_value = self.get_rssi_value()
             status = self.get_modem_status()
             
-            returnedList = lora.on_rx_done()
+            returnedList = self.on_rx_done()
             print("payload")
             client = mqtt.Client()
             
