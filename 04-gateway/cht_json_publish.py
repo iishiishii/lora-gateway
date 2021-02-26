@@ -155,22 +155,22 @@ except: pass
 
 try:
     lora.start()
-    while True:
-        returnedList = lora.on_rx_done()
-        print("payload")
-        client = mqtt.Client()
-        
-        # for tago include this line
-        client.username_pw_set(mqtt_username, mqtt_password)
-        
-        client.on_connect = on_connect
-        client.connect(broker, broker_port, mqtt_keep_alive)
-        client.loop_start()
-        
-        data_json_string = json.dumps(returnedList)
-        
-        # 20 device every 2s
-        time.sleep(2)
+    #while True:
+    returnedList = lora.on_rx_done()
+    print("payload")
+    client = mqtt.Client()
+    
+    # for tago include this line
+    client.username_pw_set(mqtt_username, mqtt_password)
+    
+    client.on_connect = on_connect
+    client.connect(broker, broker_port, mqtt_keep_alive)
+    client.loop_start()
+    
+    data_json_string = json.dumps(returnedList)
+    
+    # 20 device every 2s
+    time.sleep(2)
 except KeyboardInterrupt:
     sys.stdout.flush()
     sys.stderr.write("KeyboardInterrupt\n")

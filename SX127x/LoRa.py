@@ -82,7 +82,7 @@ class LoRa(object):
     verbose = True
     dio_mapping = [None] * 6          # store the dio mapping here
 
-    def __init__(self, verbose=True, do_calibration=True, calibration_freq=868):
+    def __init__(self, verbose=True, do_calibration=True, calibration_freq=433):
         """ Init the object
         
         Send the device to sleep, read all registers, and do the calibration (if do_calibration=True)
@@ -826,7 +826,7 @@ class LoRa(object):
         """
         return 0x87 if pa_dac else 0x84
 
-    def rx_chain_calibration(self, freq=868.):
+    def rx_chain_calibration(self, freq=433):
         """ Run the image calibration (see Semtech documentation section 4.2.3.8)
         :param freq: Frequency for the HF calibration
         :return: None
