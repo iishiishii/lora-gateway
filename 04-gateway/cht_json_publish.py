@@ -27,25 +27,12 @@ import time
 import sys
 from time import sleep
 import packer
-import socket
+import base64
 import numpy as np
 sys.path.insert(0, '../')
 from SX127x.LoRa import *
 from SX127x.board_config import BOARD
 from SX127x.LoRaArgumentParser import LoRaArgumentParser
-
-BOARD.setup()
-
-parser = LoRaArgumentParser("Continous LoRa receiver.")
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-
-# python2
-try:
-    import sys
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-except:
-    pass
 
 
 # publish to TagoIO
@@ -57,15 +44,18 @@ mqtt_username = "mqtt_client"
 mqtt_password = device_token
 mqtt_topic = "tago/data/post"
 
-# publish emqx
-# broker = "broker.emqx.io"
-# broker_port = 1883
-# mqtt_keep_alive = 60
-# mqtt_topic = "topic/test"
+BOARD.setup()
 
-def on_connect(client, userdata, flags, rc):
-    print("Connected OK")
-    client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
+parser = LoRaArgumentParser("Continous LoRa receiver.")
+
+# python2
+try:
+    import sys
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+except:
+    pass
+
 
 class LoRaRcvCont(LoRa):
     def __init__(self, verbose=False):
@@ -74,6 +64,15 @@ class LoRaRcvCont(LoRa):
         self.set_dio_mapping([0,0,0,0,0,0])    # RX
         self._id = "GW_01"
 
+    # publish emqx
+    # broker = "broker.emqx.io"
+    # broker_port = 1883
+    # mqtt_keep_alive = 60
+    # mqtt_topic = "topic/test"
+
+    def on_connect(self, client, userdata, flags, rc):
+        print("Connected OK")
+        client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
 
     def on_rx_done(self):
         print("\nRxDone")
@@ -99,7 +98,6 @@ class LoRaRcvCont(LoRa):
             print("Non-hexadecimal digit found...")
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
             print("Receive: {}".format( data))
-
 
 
         self.set_dio_mapping([1,0,0,0,0,0])    # TX
@@ -149,7 +147,7 @@ class LoRaRcvCont(LoRa):
             # for tago include this line
             client.username_pw_set(mqtt_username, mqtt_password)
             
-            client.on_connect = on_connect
+            client.on_connect = self.on_connect
             client.connect(broker, broker_port, mqtt_keep_alive, json.dumps(returnedList))
             client.loop_start()
 

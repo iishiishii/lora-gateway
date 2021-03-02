@@ -3,9 +3,9 @@
 #
 
 # e.g. x = bytearray([ 0x01, 0x67, 0xc6, 0x00, 0x11, 0x22, 0x33, 0xff, 0xff, 0x44, 0x55, 0x66 ])  
-x = bytearray([ 0x01, 0x67, 0xc6, 0x00, 0x??, 0x??, 0x??, 0xff, 0xff, 0x??, 0x??, 0x?? ])  
+x = bytearray([ 0x01, 0x67, 0xc6, 0x00, 0x11, 0x22, 0x33, 0xff, 0xff, 0x44, 0x55, 0x66 ])  
 UDP_IP   = "52.169.76.203"
-UDP_PORT = 1700
+UDP_PORT = 1883
 
 LATI = 25.058
 LONG = 121.532
@@ -19,8 +19,6 @@ TXNB = 0
 PFRM = "Single Channel Gateway"
 MAIL = "your@email.com"
 DESC = "Test"
-
-
 #
 # TTN Device
 #
@@ -43,8 +41,8 @@ SIZE = 19
 #
 # TTN Application
 #
-user, password = "<AppID>", "<AppKey>"
-ttn_router = "eu.thethings.network"
+user, password = "mqtt_client", "75942942-5468-4e7a-8890-2e9586ce6b55"
+ttn_router = "mqtt.tago.io"
 
 
 
