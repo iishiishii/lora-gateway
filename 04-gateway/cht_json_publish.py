@@ -70,9 +70,7 @@ class LoRaRcvCont(LoRa):
     # mqtt_keep_alive = 60
     # mqtt_topic = "topic/test"
 
-    def on_connect(self, client, userdata, flags, rc):
-        print("Connected OK")
-        client.publish(mqtt_topic, payload=rc, qos=0, retain=False)
+    
 
     def on_rx_done(self):
         print("\nRxDone")
@@ -133,6 +131,10 @@ class LoRaRcvCont(LoRa):
 
 
     def start(self):
+        def on_connect(client, userdata, flags, rc):
+            print("Connected OK")
+            client.publish(mqtt_topic, payload=data_json, qos=0, retain=False)
+
         self.reset_ptr_rx()
         self.set_mode(MODE.RXCONT)
         while True:
@@ -141,14 +143,15 @@ class LoRaRcvCont(LoRa):
             status = self.get_modem_status()
             
             returnedList = self.on_rx_done()
+            data_json = json.dumps(returnedList)
             print("payload")
             client = mqtt.Client()
             
             # for tago include this line
             client.username_pw_set(mqtt_username, mqtt_password)
             
-            client.on_connect = self.on_connect
-            client.connect(broker, broker_port, mqtt_keep_alive, json.dumps(returnedList))
+            client.on_connect = on_connect
+            client.connect(broker, broker_port, mqtt_keep_alive)
             client.loop_start()
 
             # 20 device every 2s
